@@ -4,11 +4,12 @@ import (
 	"Project_go/model"
 	"Project_go/utils"
 	"fmt"
-	"github.com/gin-gonic/gin"
-	"gorm.io/gorm"
 	"net/http"
 	"strconv"
 	"time"
+
+	"github.com/gin-gonic/gin"
+	"gorm.io/gorm"
 )
 
 func CreatePaymentHandler(c *gin.Context, db *gorm.DB) {
@@ -128,11 +129,11 @@ func GetAllPaymentsHandler(c *gin.Context, db *gorm.DB) {
 
 	c.JSON(http.StatusOK, payments)
 }
-func StreamPaymentsHandler(c *gin.Context) {
-	client := utils.GetBroadcaster().Subscribe()
-	defer utils.GetBroadcaster().Unsubscribe(client)
+func StreamPaymentsHandler(c *gin.Context, broadcaster *utils.Broadcaster) {
+	client := broadcaster.Subscribe()
+	defer broadcaster.Unsubscribe(client)
 
-	c.Header("Content-Type", "text/event-stream")
+	c.Header("Content-Type", "text/html")
 	c.Header("Cache-Control", "no-cache")
 	c.Header("Connection", "keep-alive")
 	c.Header("Access-Control-Allow-Origin", "*")
@@ -141,9 +142,9 @@ func StreamPaymentsHandler(c *gin.Context) {
 	for {
 		select {
 		case event := <-client:
-			if p, ok := event.(*model.Payment); ok {
-				c.SSEvent("payment", p)
-			}
+			c.Writer.Write([]byte("<h1>&#128511; New payment registered &#128511;</h1>"))
+			c.Writer.Write([]byte(fmt.Sprintf("<p>Payment ID: %d, Product ID: %d, Price Paid: %d</p>", event.ID, event.ProductID, event.PricePaid)))
+			c.Writer.Flush() // send the response to the client
 		case <-c.Request.Context().Done():
 			return
 		}

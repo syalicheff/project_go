@@ -3,7 +3,9 @@ package main
 import (
 	"Project_go/handler"
 	"Project_go/model"
+	"Project_go/utils"
 	"fmt"
+
 	"github.com/gin-gonic/gin"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
@@ -48,7 +50,11 @@ func main() {
 	router.GET("/payments", func(c *gin.Context) {
 		handler.GetAllPaymentsHandler(c, db)
 	})
-	router.GET("/stream/payments", handler.StreamPaymentsHandler)
+
+	router.GET("/payments/stream", func(c *gin.Context) {
+		handler.StreamPaymentsHandler(c, utils.GetBroadcaster())
+	})
+
 	router.Run(fmt.Sprintf(":%v", 8089))
 
 }
