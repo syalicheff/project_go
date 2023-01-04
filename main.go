@@ -52,7 +52,7 @@ func main() {
 	})
 
 	router.GET("/payments/stream", func(c *gin.Context) {
-		handler.StreamPaymentsHandler(c, utils.GetBroadcaster())
+		handler.StreamPaymentsHandler(c, utils.GetBroadcaster(), db)
 	})
 
 	router.Run(fmt.Sprintf(":%v", 8089))

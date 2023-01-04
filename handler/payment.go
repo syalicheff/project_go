@@ -129,7 +129,7 @@ func GetAllPaymentsHandler(c *gin.Context, db *gorm.DB) {
 
 	c.JSON(http.StatusOK, payments)
 }
-func StreamPaymentsHandler(c *gin.Context, broadcaster *utils.Broadcaster) {
+func StreamPaymentsHandler(c *gin.Context, broadcaster *utils.Broadcaster, db *gorm.DB) {
 	client := broadcaster.Subscribe()
 	defer broadcaster.Unsubscribe(client)
 
@@ -138,14 +138,58 @@ func StreamPaymentsHandler(c *gin.Context, broadcaster *utils.Broadcaster) {
 	c.Header("Connection", "keep-alive")
 	c.Header("Access-Control-Allow-Origin", "*")
 
+	// how to serve style.css file ?
+
+	// Send header of table
+	c.Writer.Write([]byte(`
+			<style>
+			table {
+				border-collapse: collapse;
+
+			}
+			th, td {
+				border: 1px solid black;
+				padding: 5px;
+			}
+
+			tr:nth-child(even) {
+				background-color: #eee;
+			}
+			tr:nth-child(odd) {
+				background-color: #fff;
+			}
+
+			th {
+				background-color: black;
+				color: white;
+			}
+			
+		</style>
+	`))
+	c.Writer.Write([]byte("<table><th>Product Name</th><th>Total Price</th><th>Payment Date</th></tr>"))
+
 	// Send broadcast events to the client
 	for {
 		select {
 		case event := <-client:
-			c.Writer.Write([]byte("<h1>&#128511; New payment registered &#128511;</h1>"))
-			c.Writer.Write([]byte(fmt.Sprintf("<p>Payment ID: %d, Product ID: %d, Price Paid: %d</p>", event.ID, event.ProductID, event.PricePaid)))
-			c.Writer.Flush() // send the response to the client
+			// Write row of table for each payment event
+			dateTimeFormat := "2006-01-02 at 15:04"
+			// replace the event.ProductID by its name
+			var product model.Product
+			if err := db.First(&product, event.ProductID).Error; err != nil {
+				if err == gorm.ErrRecordNotFound {
+					c.AbortWithStatus(http.StatusNotFound)
+					return
+				}
+				_ = c.AbortWithError(http.StatusInternalServerError, err)
+				return
+			}
+
+			c.Writer.Write([]byte(fmt.Sprintf("<tr><td>%s</td><td>%d</td><td>%s</td></tr>", product.Name, event.PricePaid, event.CreatedAt.Format(dateTimeFormat))))
+			c.Writer.Flush()
 		case <-c.Request.Context().Done():
+			// Close table when done
+			c.Writer.Write([]byte("</table>"))
 			return
 		}
 	}
