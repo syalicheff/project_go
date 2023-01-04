@@ -2,18 +2,11 @@
 <html>
 <head>
     <title>Payment Stream</title>
+    <iframe width="560" height="315" src="https://www.youtube.com/embed/CJGCkTWnDG8?controls=0&amp;start=12" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope;" allowfullscreen></iframe>
 </head>
 <body>
 <h1>Payment Stream</h1>
 <div id="payment-messages"></div>
-<script>
-    // Set up EventSource to listen for server-sent events from the stream/payments endpoint
-    const eventSource = new EventSource("/stream/payments");
-    eventSource.onmessage = (event) => {
-        console.log(event)
-        // Update the payment-messages element with the new payment message
-        document.getElementById("payment-messages").innerHTML += `<p>${event.data}</p>`;
-    };
-</script>
+<script>document.getElementById('notificationSound').play()</script>
 </body>
 </html>

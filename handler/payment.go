@@ -163,9 +163,7 @@ func StreamPaymentsHandler(c *gin.Context, broadcaster *utils.Broadcaster, db *g
 				background-color: black;
 				color: white;
 			}
-			
-		</style>
-	`))
+		</style>`))
 	c.Writer.Write([]byte("<table><th>Product Name</th><th>Total Price</th><th>Payment Date</th></tr>"))
 
 	// Send broadcast events to the client
@@ -184,7 +182,6 @@ func StreamPaymentsHandler(c *gin.Context, broadcaster *utils.Broadcaster, db *g
 				_ = c.AbortWithError(http.StatusInternalServerError, err)
 				return
 			}
-
 			c.Writer.Write([]byte(fmt.Sprintf("<tr><td>%s</td><td>%d</td><td>%s</td></tr>", product.Name, event.PricePaid, event.CreatedAt.Format(dateTimeFormat))))
 			c.Writer.Flush()
 		case <-c.Request.Context().Done():
